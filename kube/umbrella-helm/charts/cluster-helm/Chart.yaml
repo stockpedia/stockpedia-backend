@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cluster
+description: Cluster and Namespace Policy KTB
+type: application
+version: 0.1.0

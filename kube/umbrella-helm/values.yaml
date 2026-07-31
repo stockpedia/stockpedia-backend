@@ -1,0 +1,73 @@
+backend:
+  # --- 복제본 ---
+  replicaCount: 2
+
+  # --- 이미지 ---
+  image:
+    repository: 925663248026.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-ktb
+    tag: latest
+
+  # --- Pod 리소스 ---
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "768Mi"
+
+  # --- Probe ---
+  probe:
+    startup:
+      periodSeconds: 5
+      failureThreshold: 12
+      timeoutSeconds: 3
+    readiness:
+      periodSeconds: 10
+      failureThreshold: 3
+      timeoutSeconds: 3
+    liveness:
+      periodSeconds: 15
+      failureThreshold: 3
+      timeoutSeconds: 3
+
+  # --- ConfigMap 데이터 ---
+  config:
+    DB_HOST: "az1-rds-ktb.cn624i4wilx0.ap-northeast-2.rds.amazonaws.com"
+    DB_PORT: "3306"
+    DB_NAME: "ktb"
+    REDIS_HOST: "elasticcache-redis-ktb-001.twp2ye.ng.0001.apn2.cache.amazonaws.com"
+    REDIS_PORT: "6379"
+    DDL_AUTO: "update"
+    S3_BUCKET: "s3-bucket-ktb"
+    SPRING_PROFILES_ACTIVE: "prod"
+
+  # --- secret ---
+  secretName: "secret-backend-ktb"
+
+  # --- Rolling Update strategy ---
+  strategy:
+    maxUnavailable: 0
+    maxSurge: 1
+
+  # --- affinity ---
+  affinity:
+    weight: 100
+
+  # --- service type ---
+  service:
+    type: NodePort
+    externalTrafficPolicy: Cluster
+
+  # --- 컨테이너 포트 ---
+  containerPort: 8080
+
+  # --- ingress (ALB) ---
+  ingress:
+    className: alb
+    scheme: internet-facing
+    targetType: instance
+    certificateArn: "arn:aws:acm:ap-northeast-2:925663248026:certificate/34de2909-4e90-4241-a7f2-5f612777dc43"
+    healthcheckPath: /actuator/health/readiness
+    subnets: "subnet-06412b28d73f82e7c, subnet-01a255286aa892328"
+    host: www.shiftknu.com

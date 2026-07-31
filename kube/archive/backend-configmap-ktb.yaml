@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap-backend-ktb
+  namespace: prod
+data:
+  DB_HOST: az1-rds-ktb.cn624i4wilx0.ap-northeast-2.rds.amazonaws.com
+  DB_PORT: "3306"
+  DB_NAME: ktb
+  REDIS_HOST: elasticcache-redis-ktb-001.twp2ye.ng.0001.apn2.cache.amazonaws.com
+  REDIS_PORT: "6379"
+  DDL_AUTO: validate
+  S3_BUCKET: s3-bucket-ktb
+  SPRING_PROFILES_ACTIVE: prod

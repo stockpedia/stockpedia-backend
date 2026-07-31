@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-backend-ktb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    env: prod
+    team: backend
+    project: ktb
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: {{ .Values.strategy.maxUnavailable }}
+      maxSurge: {{ .Values.strategy.maxSurge }}
+  selector:
+    matchLabels:
+      app: ktb
+      tier: backend
+      env: prod
+  template:
+    metadata:
+      labels:
+        app: ktb
+        tier: backend
+        env: prod
+    spec:
+      serviceAccountName: serviceaccount-backend-ktb
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: {{ .Values.affinity.weight }}
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: ktb
+                    tier: backend
+                    env: prod
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: app-backend-ktb
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.containerPort }}
+          envFrom:
+            - configMapRef:
+                name: configmap-backend-ktb
+            - secretRef:
+                name: {{ .Values.secretName }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: {{ .Values.containerPort }}
+            periodSeconds: {{ .Values.probe.startup.periodSeconds }}
+            failureThreshold: {{ .Values.probe.startup.failureThreshold }}
+            timeoutSeconds: {{ .Values.probe.startup.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: {{ .Values.containerPort }}
+            periodSeconds: {{ .Values.probe.readiness.periodSeconds }}
+            failureThreshold: {{ .Values.probe.readiness.failureThreshold }}
+            timeoutSeconds: {{ .Values.probe.readiness.timeoutSeconds }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: {{ .Values.containerPort }}
+            periodSeconds: {{ .Values.probe.liveness.periodSeconds }}
+            failureThreshold: {{ .Values.probe.liveness.failureThreshold }}
+            timeoutSeconds: {{ .Values.probe.liveness.timeoutSeconds }}

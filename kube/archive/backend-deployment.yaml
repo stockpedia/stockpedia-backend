@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-backend-ktb
+  namespace: prod
+  labels:
+    # Deployment 객체 자신의 라벨
+    # kubectl로 Deployment를 조회하거나 분류할 때 사용
+    env: prod
+    team: backend
+    project: ktb
+spec:
+  # 우선은 1로 설정한 뒤, 실측 데이터를 바탕으로 최적화
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      # Deployment가 관리할 Pod를 찾기 위한 라벨
+      # 아래 template.metadata.labels와 반드시 일치해야 함
+      app: ktb
+      tier: backend
+      env: prod
+  template:
+    metadata:
+      labels:
+        # 새로 생성될 Pod에 붙는 라벨
+        # Service나 Deployment가 이 라벨을 기준으로 Pod를 선택함
+        app: ktb
+        tier: backend
+        env: prod
+    spec:
+      serviceAccountName: serviceaccount-backend-ktb
+      affinity:
+        # Pod 배치 규칙
+        podAntiAffinity:
+          # "같은 라벨 Pod끼리 서로 밀어내라"
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              # 선호 강도 1~100
+              # 100 = 최대한 이 규칙 지켜라
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    # "이 라벨 가진 Pod가 있는 곳을 피해라"
+                    # 내 형제 replica
+                    app: ktb
+                    tier: backend
+                    env: prod
+                topologyKey: kubernetes.io/hostname
+                # "같은 곳"의 기준 = 노드(hostname)
+                # 즉 서로 다른 노드에 분산
+      containers:
+        - name: app-backend-ktb
+          image: 925663248026.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-ktb:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: configmap-backend-ktb
+            - secretRef:
+                name: secret-backend-ktb
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "768Mi"
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 12
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            periodSeconds: 15
+            failureThreshold: 3
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 3
