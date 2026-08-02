@@ -1,0 +1,75 @@
+# --- 복제본 ---
+replicaCount: 1
+
+# --- ServiceAccount ---
+serviceAccountName: serviceaccount-portainer-ktb
+
+# --- 노드 ---
+nodeName: ip-10-0-3-131
+
+# --- 이미지 ---
+image:
+  repository: portainer/portainer-k8s-beta
+  tag: linux-amd64
+  pullPolicy: IfNotPresent
+
+# --- 컨테이너 포트 ---
+containerPort: 9000
+
+# --- 리소스 ---
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+# --- Probe ---
+probe:
+  path: /
+  startup:
+    periodSeconds: 10
+    failureThreshold: 5
+    timeoutSeconds: 2
+  readiness:
+    periodSeconds: 10
+    failureThreshold: 3
+    timeoutSeconds: 2
+  liveness:
+    periodSeconds: 10
+    failureThreshold: 3
+    timeoutSeconds: 2
+
+# --- StorageClass / PV ---
+storage:
+  provisioner: kubernetes.io/no-provisioner
+  volumeBindingMode: WaitForFirstConsumer
+  reclaimPolicy: Retain
+  volumeMode: Filesystem
+  accessMode: ReadWriteOnce
+
+# --- 스토리지 ---
+persistence:
+  claimName: pvc-portainer-ktb
+  size: 1Gi
+  path: /data/portainer
+
+# --- service ---
+service:
+  type: NodePort
+  port: 9000
+  targetPort: 9000
+
+# --- ingress ---
+ingress:
+  className: alb
+  scheme: internet-facing
+  targetType: instance
+  certificateArn: "arn:aws:acm:ap-northeast-2:925663248026:certificate/fd776ed0-19ed-4377-9981-96a24db26733"
+  healthcheckPath: /
+  subnets: "subnet-06412b28d73f82e7c, subnet-01a255286aa892328"
+  inboundCidrs: "193.186.4.132/32"
+  host: portainer.shiftknu.com
+  serviceName: service-portainer-clusterip-ktb
+  servicePort: 9000

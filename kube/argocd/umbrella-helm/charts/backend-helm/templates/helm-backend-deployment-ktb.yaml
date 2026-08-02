@@ -1,12 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: deployment-backend-ktb
+  name: backend-deployment-ktb
   namespace: {{ .Release.Namespace }}
   labels:
-    env: prod
-    team: backend
     project: ktb
+    team: backend
+    env: prod
+    app.kubernetes.io/name: backend
+    app.kubernetes.io/part-of: ktb
+    app.kubernetes.io/managed-by: Helm
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
@@ -16,15 +19,16 @@ spec:
       maxSurge: {{ .Values.strategy.maxSurge }}
   selector:
     matchLabels:
-      app: ktb
-      tier: backend
+      app: backend
       env: prod
   template:
     metadata:
       labels:
-        app: ktb
-        tier: backend
+        app: backend
         env: prod
+        app.kubernetes.io/name: backend
+        app.kubernetes.io/part-of: ktb
+        app.kubernetes.io/managed-by: Helm
     spec:
       serviceAccountName: serviceaccount-backend-ktb
       affinity:
@@ -34,12 +38,12 @@ spec:
               podAffinityTerm:
                 labelSelector:
                   matchLabels:
-                    app: ktb
-                    tier: backend
+                    app: backend
                     env: prod
                 topologyKey: kubernetes.io/hostname
       containers:
         - name: app-backend-ktb
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           ports:
             - containerPort: {{ .Values.containerPort }}

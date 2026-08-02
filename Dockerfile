@@ -13,10 +13,12 @@ RUN chmod +x gradlew && ./gradlew dependencies --no-daemon
 
 COPY src ./src
 
-RUN ./gradlew bootJar -x test
+RUN ./gradlew bootJar -x test --no-daemon
 
 # run
 FROM eclipse-temurin:21-jre-jammy
+
+ENV TZ=Etc/UTC
 
 WORKDIR /app
 

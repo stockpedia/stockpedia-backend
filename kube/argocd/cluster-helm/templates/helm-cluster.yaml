@@ -1,0 +1,55 @@
+{{- range .Values.namespaces }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .name }}
+  labels:
+    name: {{ .name }}
+  annotations:
+    app.kubernetes.io/part-of: ktb
+    app.kubernetes.io/managed-by: Helm
+    argocd.argoproj.io/sync-wave: "-1"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: {{ .name }}-limitrange-ktb
+  namespace: {{ .name }}
+  labels:
+    app.kubernetes.io/name: cluster-policy
+    app.kubernetes.io/part-of: ktb
+    app.kubernetes.io/managed-by: Helm
+spec:
+  limits:
+    - type: Container
+      min:
+        cpu: {{ .limitRange.min.cpu | quote }}
+        memory: {{ .limitRange.min.memory | quote }}
+      max:
+        cpu: {{ .limitRange.max.cpu | quote }}
+        memory: {{ .limitRange.max.memory | quote }}
+      defaultRequest:
+        cpu: {{ .limitRange.defaultRequest.cpu | quote }}
+        memory: {{ .limitRange.defaultRequest.memory | quote }}
+      default:
+        cpu: {{ .limitRange.default.cpu | quote }}
+        memory: {{ .limitRange.default.memory | quote }}
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: {{ .name }}-resourcequota-ktb
+  namespace: {{ .name }}
+  labels:
+      app.kubernetes.io/name: cluster-policy
+      app.kubernetes.io/part-of: ktb
+      app.kubernetes.io/managed-by: Helm
+spec:
+  hard:
+    pods: {{ .quota.pods | quote }}
+    requests.cpu: {{ .quota.requests.cpu | quote }}
+    requests.memory: {{ .quota.requests.memory | quote }}
+    limits.cpu: {{ .quota.limits.cpu | quote }}
+    limits.memory: {{ .quota.limits.memory | quote }}
+---
+{{- end }}

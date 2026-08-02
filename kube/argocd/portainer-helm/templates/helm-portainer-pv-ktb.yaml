@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: portainer-persistentvolume-ktb
+  labels:
+    app.kubernetes.io/component: portainer
+spec:
+  capacity:
+    storage: {{ .Values.persistence.size }}
+  volumeMode: {{ .Values.storage.volumeMode }}
+  accessModes:
+    - {{ .Values.storage.accessMode }}
+  persistentVolumeReclaimPolicy: {{ .Values.storage.reclaimPolicy }}
+  storageClassName: portainer-storageclass-local-ktb
+  local:
+    path: {{ .Values.persistence.path }}
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - {{ .Values.nodeName }}

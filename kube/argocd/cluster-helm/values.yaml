@@ -1,0 +1,75 @@
+namespaces:
+  - name: prod
+    # --- ResourceQuota ---
+    quota:
+      requests:
+        cpu: "1"
+        memory: "2Gi"
+      limits:
+        cpu: "3"
+        memory: "3Gi"
+      pods: "10"
+    # --- LimitRange ---
+    limitRange:
+      min:
+        cpu: "100m"
+        memory: "128Mi"
+      max:
+        cpu: "1200m"
+        memory: "1Gi"
+      defaultRequest:
+        cpu: "100m"
+        memory: "128Mi"
+      default:
+        cpu: "250m"
+        memory: "256Mi"
+
+  - name: portainer
+    # --- ResourceQuota ---
+    quota:
+      requests:
+        cpu: "200m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+      pods: "5"
+    # --- LimitRange ---
+    limitRange:
+      min:
+        cpu: "50m"
+        memory: "64Mi"
+      max:
+        cpu: "500m"
+        memory: "512Mi"
+      defaultRequest:
+        cpu: "50m"
+        memory: "64Mi"
+      default:
+        cpu: "200m"
+        memory: "128Mi"
+
+  - name: monitoring
+    # --- ResourceQuota ---
+    quota:
+      requests:
+        cpu: "2"
+        memory: "4Gi"
+      limits:
+        cpu: "6"
+        memory: "8Gi"
+      pods: "30"
+    # --- LimitRange ---
+    limitRange:
+      min:
+        cpu: "25m"
+        memory: "32Mi"
+      max:
+        cpu: "2"
+        memory: "2Gi"
+      defaultRequest:
+        cpu: "50m"
+        memory: "64Mi"
+      default:
+        cpu: "500m"
+        memory: "512Mi"

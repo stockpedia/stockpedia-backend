@@ -4,7 +4,8 @@ backend:
 
   # --- 이미지 ---
   image:
-    repository: 925663248026.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-ktb
+    pullPolicy: IfNotPresent
+    repository: 925663248026.dkr.ecr.ap-northeast-2.amazonaws.com/stockpedia-backend
     tag: latest
 
   # --- Pod 리소스 ---
@@ -67,7 +68,7 @@ backend:
     className: alb
     scheme: internet-facing
     targetType: instance
-    certificateArn: "arn:aws:acm:ap-northeast-2:925663248026:certificate/34de2909-4e90-4241-a7f2-5f612777dc43"
+    certificateArn: "arn:aws:acm:ap-northeast-2:925663248026:certificate/fd776ed0-19ed-4377-9981-96a24db26733"
     healthcheckPath: /actuator/health/readiness
     subnets: "subnet-06412b28d73f82e7c, subnet-01a255286aa892328"
     host: www.shiftknu.com

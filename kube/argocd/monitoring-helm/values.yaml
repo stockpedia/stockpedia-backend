@@ -1,0 +1,325 @@
+storage:
+  provisioner: kubernetes.io/no-provisioner
+  volumeBindingMode: WaitForFirstConsumer
+  reclaimPolicy: Retain
+  volumeMode: Filesystem
+  accessMode: ReadWriteOnce
+  prometheus:
+    size: 20Gi
+    hostPath: /data/monitoring/prometheus
+    nodeName: ip-10-0-3-176
+  loki:
+    size: 20Gi
+    hostPath: /data/monitoring/loki
+    nodeName: ip-10-0-3-176
+  grafana:
+    size: 5Gi
+    hostPath: /data/monitoring/grafana
+    nodeName: ip-10-0-3-176
+
+ingress:
+  className: alb
+  scheme: internet-facing
+  targetType: instance
+  certificateArn: "arn:aws:acm:ap-northeast-2:925663248026:certificate/fd776ed0-19ed-4377-9981-96a24db26733"
+  healthcheckPath: /api/health
+  subnets: "subnet-06412b28d73f82e7c, subnet-01a255286aa892328"
+  host: grafana.shiftknu.com
+  serviceName: kube-prometheus-stack-grafana
+  servicePort: 80
+
+
+kube-prometheus-stack:
+  fullnameOverride: kube-prometheus-stack        # 생성 리소스 이름 접두사 고정
+
+  defaultRules:
+    create: true                                 # 기본 알림 규칙 생성
+    rules:
+      alertmanager: false                        # alertmanager 알림 제외
+      configReloaders: false                     # config 리로더 알림 제외
+      etcd: false                                # etcd 알림 제외
+      kubeApiserverBurnrate: false               # API서버 에러율 알림 제외
+      kubeApiserverHistogram: false              # API서버 응답분포 알림 제외
+      kubeApiserverSlos: false                   # API서버 SLO 알림 제외
+      kubeControllerManager: false               # 컨트롤러매니저 알림 제외
+      kubeProxy: false                           # kube-proxy 알림 제외
+      kubeSchedulerAlerting: false               # 스케줄러 알림 제외
+      kubeSchedulerRecording: false              # 스케줄러 기록규칙 제외
+      prometheusOperator: false                  # operator 알림 제외
+      windows: false                             # 윈도우 알림 제외
+
+  kubeControllerManager:
+    enabled: false                               # 컨트롤러매니저 수집 끔 (kubeadm 접근불가)
+  kubeScheduler:
+    enabled: false                               # 스케줄러 수집 끔
+  kubeEtcd:
+    enabled: false                               # etcd 수집 끔
+  kubeProxy:
+    enabled: false                               # kube-proxy 수집 끔
+
+  grafana:
+    enabled: true                                # Grafana 켜기
+    service:
+      type: NodePort                             # ALB(instance) 타겟용 필수
+    admin:
+      existingSecret: grafana-admin-credentials  # 로그인 비번 (차트 밖 Secret)
+      userKey: admin-user                        # Secret 사용자명 키
+      passwordKey: admin-password                # Secret 비번 키
+    persistence:
+      enabled: true                              # Grafana 데이터 저장 켜기
+      type: pvc
+      storageClassName: monitoring-storageclass-local-ktb   # 우리 StorageClass
+      accessModes:
+        - ReadWriteOnce
+      size: 5Gi
+      selectorLabels:
+        app.kubernetes.io/component: grafana     # grafana PV 라벨과 짝
+      finalizers:
+        - kubernetes.io/pvc-protection
+    grafana.ini:
+      server:
+        domain: grafana.shiftknu.com             # 도메인
+        root_url: https://grafana.shiftknu.com   # 접속 URL
+      analytics:
+        reporting_enabled: false                 # 사용통계 전송 끔
+        check_for_updates: false                 # 업데이트 확인 끔
+    additionalDataSources:
+      - name: Loki                               # Loki 데이터소스 (로그 조회)
+        uid: loki
+        type: loki
+        access: proxy
+        url: http://loki.monitoring.svc.cluster.local:3100   # monitoring ns의 loki
+        editable: false
+        jsonData:
+          timeout: 60
+          maxLines: 500
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 300m
+        memory: 384Mi
+
+  prometheus:
+    prometheusSpec:
+      replicas: 1                                # 단일
+      scrapeInterval: 30s                        # 30초마다 수집
+      evaluationInterval: 30s                    # 30초마다 알림 평가
+      retention: 7d                              # 7일 보관
+      retentionSize: 10GB                        # 또는 10GB까지
+      resources:
+        requests:
+          cpu: 300m
+          memory: 768Mi
+        limits:
+          cpu: "1"
+          memory: 2Gi
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: monitoring-storageclass-local-ktb   # 우리 StorageClass
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 20Gi
+            selector:
+              matchLabels:
+                app.kubernetes.io/component: prometheus   # prometheus PV 라벨과 짝
+
+  alertmanager:
+    enabled: false                               # 알림 발송 안 씀
+
+  prometheusOperator:
+    resources:                                   # 컴포넌트 관리 컨트롤러 리소스
+      requests:
+        cpu: 50m
+        memory: 96Mi
+      limits:
+        cpu: 300m
+        memory: 256Mi
+
+  kube-state-metrics:
+    resources:                                   # K8s 오브젝트 상태 메트릭 리소스
+      requests:
+        cpu: 25m
+        memory: 48Mi
+      limits:
+        cpu: 200m
+        memory: 192Mi
+
+  prometheus-node-exporter:
+    resources:                                   # 노드 하드웨어 메트릭 리소스 (daemonset)
+      requests:
+        cpu: 25m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 96Mi
+
+loki:
+  fullnameOverride: loki                         # 리소스 이름 고정
+  deploymentMode: SingleBinary                   # 단일 모드 (소규모)
+  loki:
+    auth_enabled: false                          # 멀티테넌시 인증 끔
+    commonConfig:
+      path_prefix: /var/loki                     # 데이터 경로
+      replication_factor: 1                      # 복제 1
+    storage:
+      type: filesystem                           # 로컬 파일시스템 (S3 아님)
+    schemaConfig:
+      configs:
+        - from: "2024-04-01"                     # loki 필수 스키마
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: index_
+            period: 24h
+    limits_config:
+      retention_period: 168h                     # 로그 7일 보관
+      reject_old_samples: true                   # 오래된 로그 거부
+      reject_old_samples_max_age: 168h
+      volume_enabled: true
+    compactor:
+      retention_enabled: true                    # 만료 로그 자동 정리
+      delete_request_store: filesystem
+  singleBinary:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    persistence:
+      enabled: true
+      enableStatefulSetAutoDeletePVC: false
+      whenDeleted: Retain                        # 삭제돼도 데이터 보존
+      whenScaled: Retain
+      storageClass: monitoring-storageclass-local-ktb   # 우리 StorageClass
+      size: 20Gi
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: loki       # loki PV 라벨과 짝
+  read:
+    replicas: 0                                  # SingleBinary라 마이크로서비스 끔
+  write:
+    replicas: 0
+  backend:
+    replicas: 0
+  gateway:
+    enabled: false
+  chunksCache:
+    enabled: false                               # 캐시 끔 (메모리 절약)
+  resultsCache:
+    enabled: false
+  lokiCanary:
+    enabled: false                               # 헬스체크 카나리 끔
+  test:
+    enabled: false
+  monitoring:
+    serviceMonitor:
+      enabled: false                             # loki 자체 메트릭 수집 끔
+    dashboards:
+      enabled: true                              # Grafana에 loki 대시보드 넣음
+
+alloy:
+  fullnameOverride: alloy                        # 리소스 이름 고정
+  controller:
+    type: daemonset                              # 모든 노드에 하나씩
+    tolerations:
+      - operator: Exists                         # 어떤 taint든 무시하고 배치
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: node-role.kubernetes.io/control-plane
+                  operator: DoesNotExist         # 컨트롤플레인 제외
+  alloy:
+    enableReporting: false                       # 사용통계 전송 끔
+    mounts:
+      varlog: true                               # /var/log 마운트 (로그 위치)
+    extraEnv:
+      - name: NODE_NAME                          # 이 alloy가 뜬 노드 (로그 필터용)
+        valueFrom:
+          fieldRef:
+            fieldPath: spec.nodeName
+    resources:
+      requests:
+        cpu: 25m
+        memory: 96Mi
+      limits:
+        cpu: 200m
+        memory: 192Mi
+    configMap:
+      content: |-                                # 로그 수집 파이프라인 (alloy 본체)
+        logging {
+          level  = "info"
+          format = "logfmt"
+        }
+        discovery.kubernetes "pods" {
+          role = "pod"
+        }
+        discovery.relabel "pod_logs" {
+          targets = discovery.kubernetes.pods.targets
+          rule {
+            source_labels = ["__meta_kubernetes_pod_node_name"]
+            regex         = sys.env("NODE_NAME")
+            action        = "keep"               # 이 노드 로그만
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            regex         = "(prod|portainer)"
+            action        = "keep"               # 우리 서비스 네임스페이스만
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            target_label  = "container"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+            target_label  = "app"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+            separator     = "/"
+            target_label  = "__path__"
+            replacement   = "/var/log/pods/*$1/*.log"
+          }
+        }
+        local.file_match "pod_logs" {
+          path_targets = discovery.relabel.pod_logs.output
+        }
+        loki.source.file "pod_logs" {
+          targets       = local.file_match.pod_logs.targets
+          tail_from_end = true
+          forward_to    = [loki.process.pod_logs.receiver]
+        }
+        loki.process "pod_logs" {
+          stage.cri {}
+          stage.static_labels {
+            values = {
+              cluster = "ktb",                    # 클러스터 라벨
+            }
+          }
+          forward_to = [loki.write.default.receiver]
+        }
+        loki.write "default" {
+          endpoint {
+            url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"   # Loki로 전송
+          }
+        }
+  serviceMonitor:
+    enabled: false                               # alloy 자체 메트릭 수집 끔

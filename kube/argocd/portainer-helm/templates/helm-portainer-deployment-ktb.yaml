@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-portainer-ktb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: portainer
+    env: prod
+    app.kubernetes.io/name: portainer
+    app.kubernetes.io/part-of: ktb
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: portainer
+      env: prod
+  template:
+    metadata:
+      labels:
+        app: portainer
+        env: prod
+        app.kubernetes.io/name: portainer
+        app.kubernetes.io/part-of: ktb
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      serviceAccountName: {{ .Values.serviceAccountName }}
+      containers:
+        - name: portainer
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.containerPort }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.probe.path }}
+              port: {{ .Values.containerPort }}
+            periodSeconds: {{ .Values.probe.startup.periodSeconds }}
+            failureThreshold: {{ .Values.probe.startup.failureThreshold }}
+            timeoutSeconds: {{ .Values.probe.startup.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probe.path }}
+              port: {{ .Values.containerPort }}
+            periodSeconds: {{ .Values.probe.readiness.periodSeconds }}
+            failureThreshold: {{ .Values.probe.readiness.failureThreshold }}
+            timeoutSeconds: {{ .Values.probe.readiness.timeoutSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probe.path }}
+              port: {{ .Values.containerPort }}
+            periodSeconds: {{ .Values.probe.liveness.periodSeconds }}
+            failureThreshold: {{ .Values.probe.liveness.failureThreshold }}
+            timeoutSeconds: {{ .Values.probe.liveness.timeoutSeconds }}
+          volumeMounts:
+            - name: portainer-data
+              mountPath: /data
+      volumes:
+        - name: portainer-data
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.claimName }}
