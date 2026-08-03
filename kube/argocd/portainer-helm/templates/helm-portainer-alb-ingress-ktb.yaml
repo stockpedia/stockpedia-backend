@@ -15,7 +15,8 @@ metadata:
     alb.ingress.kubernetes.io/ssl-redirect: '443'
     alb.ingress.kubernetes.io/healthcheck-path: {{ .Values.ingress.healthcheckPath | quote }}
     alb.ingress.kubernetes.io/subnets: {{ .Values.ingress.subnets | quote }}
-    alb.ingress.kubernetes.io/inbound-cidrs: {{ .Values.ingress.inboundCidrs | quote }}
+    alb.ingress.kubernetes.io/group.name: k8s-public-ktb
+    # alb.ingress.kubernetes.io/inbound-cidrs: {{ .Values.ingress.inboundCidrs | quote }}
 spec:
   ingressClassName: {{ .Values.ingress.className | quote }}
   rules:
