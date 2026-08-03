@@ -51,7 +51,7 @@ storage:
 
 # --- 스토리지 ---
 persistence:
-  claimName: pvc-portainer-ktb
+  claimName: portainer-pvc-ktb
   size: 1Gi
   path: /data/portainer
 
