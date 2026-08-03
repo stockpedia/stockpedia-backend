@@ -25,7 +25,7 @@ ingress:
   healthcheckPath: /api/health
   subnets: "subnet-06412b28d73f82e7c, subnet-01a255286aa892328"
   host: grafana.shiftknu.com
-  serviceName: kube-prometheus-stack-grafana
+  serviceName: monitoring-grafana
   servicePort: 80
 
 
