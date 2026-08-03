@@ -255,15 +255,7 @@ alloy:
       limits:
         cpu: 200m
         memory: 192Mi
-  configReloader:
-    resources:
-      requests:
-        cpu: 25m
-        memory: 50Mi
-      limits:
-        cpu: 50m
-        memory: 100Mi
-    configMap:
+    configMap:                                   # ★ 여기로 이동 (안쪽 alloy 안, 4칸)
       content: |-                                # 로그 수집 파이프라인 (alloy 본체)
         logging {
           level  = "info"
@@ -329,5 +321,13 @@ alloy:
             url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"   # Loki로 전송
           }
         }
+  configReloader:                                # 안쪽 alloy와 형제 (2칸) — resources만
+    resources:
+      requests:
+        cpu: 25m
+        memory: 50Mi
+      limits:
+        cpu: 50m
+        memory: 100Mi
   serviceMonitor:
     enabled: false                               # alloy 자체 메트릭 수집 끔
