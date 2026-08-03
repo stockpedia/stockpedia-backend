@@ -49,7 +49,7 @@ spec:
             - containerPort: {{ .Values.containerPort }}
           envFrom:
             - configMapRef:
-                name: configmap-backend-ktb
+                name: backend-configmap-ktb
             - secretRef:
                 name: {{ .Values.secretName }}
           resources:

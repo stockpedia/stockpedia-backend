@@ -44,7 +44,7 @@ backend:
     SPRING_PROFILES_ACTIVE: "prod"
 
   # --- secret ---
-  secretName: "secret-backend-ktb"
+  secretName: "backend-secret-ktb"
 
   # --- Rolling Update strategy ---
   strategy:
