@@ -69,7 +69,7 @@ ingress:
   certificateArn: "arn:aws:acm:ap-northeast-2:925663248026:certificate/fd776ed0-19ed-4377-9981-96a24db26733"
   healthcheckPath: /
   subnets: "subnet-06412b28d73f82e7c, subnet-01a255286aa892328"
-  inboundCidrs: "193.186.4.132/32"
+  inboundCidrs: "193.186.4.132/32, 211.244.225.224/32"
   host: portainer.shiftknu.com
   serviceName: service-portainer-clusterip-ktb
   servicePort: 9000
