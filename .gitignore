@@ -58,3 +58,5 @@ uploads/
 *.pem
 
 default.conf
+
+kube/argocd/monitoring-helm/charts/
