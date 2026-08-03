@@ -255,7 +255,7 @@ alloy:
       limits:
         cpu: 200m
         memory: 192Mi
-    configMap:                                   # ★ 여기로 이동 (안쪽 alloy 안, 4칸)
+    configMap:                                   # 안쪽 alloy 안 (4칸)
       content: |-                                # 로그 수집 파이프라인 (alloy 본체)
         logging {
           level  = "info"
@@ -269,12 +269,12 @@ alloy:
           rule {
             source_labels = ["__meta_kubernetes_pod_node_name"]
             regex         = sys.env("NODE_NAME")
-            action        = "keep"               # 이 노드 로그만
+            action        = "keep"               // 이 노드 로그만
           }
           rule {
             source_labels = ["__meta_kubernetes_namespace"]
             regex         = "(prod|portainer)"
-            action        = "keep"               # 우리 서비스 네임스페이스만
+            action        = "keep"               // 우리 서비스 네임스페이스만
           }
           rule {
             source_labels = ["__meta_kubernetes_namespace"]
@@ -311,14 +311,14 @@ alloy:
           stage.cri {}
           stage.static_labels {
             values = {
-              cluster = "ktb",                    # 클러스터 라벨
+              cluster = "ktb",                    // 클러스터 라벨
             }
           }
           forward_to = [loki.write.default.receiver]
         }
         loki.write "default" {
           endpoint {
-            url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"   # Loki로 전송
+            url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"   // Loki로 전송
           }
         }
   configReloader:                                # 안쪽 alloy와 형제 (2칸) — resources만
