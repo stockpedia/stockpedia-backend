@@ -71,4 +71,4 @@ backend:
     certificateArn: "arn:aws:acm:ap-northeast-2:925663248026:certificate/fd776ed0-19ed-4377-9981-96a24db26733"
     healthcheckPath: /actuator/health/readiness
     subnets: "subnet-06412b28d73f82e7c, subnet-01a255286aa892328"
-    host: www.shiftknu.com
+    host: api.shiftknu.com
