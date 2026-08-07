@@ -1,0 +1,24 @@
+{
+  "properties": {
+    "postId": {
+      "type": "integer"
+    },
+    "title": {
+      "type": "text",
+      "analyzer": "korean"
+    },
+    "content": {
+      "type": "text",
+      "analyzer": "korean"
+    },
+    "memberNickname": {
+      "type": "text",
+      "analyzer": "korean",
+      "fields": { "keyword": { "type":  "keyword"} }
+    },
+    "createdAt": {
+      "type": "date",
+      "format": "date_hour_minute_second_millis"
+    }
+  }
+}

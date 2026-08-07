@@ -57,6 +57,8 @@ uploads/
 
 *.pem
 
+CLAUDE.md
+
 default.conf
 
 kube/argocd/monitoring-helm/charts/
