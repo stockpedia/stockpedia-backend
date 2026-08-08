@@ -34,5 +34,18 @@ spring:
       max-request-size: 10MB    # 요청 전체 합 (기본 10MB)
       resolve-lazily: true      # multipart 파싱 지연 처리 (선택)
 
+  elasticsearch:
+    uris: http://${ES_HOST:localhost}:${ES_PORT:9200}
+
+  jackson:
+    time-zone: Asia/Seoul
+
 file:
   upload-path: uploads
+
+search:
+  boost:
+    title: 3
+    author-nickname: 2
+    content: 1
+  fuzziness: AUTO

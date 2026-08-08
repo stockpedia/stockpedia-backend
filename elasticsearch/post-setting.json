@@ -1,24 +1,31 @@
 {
-  "properties": {
-    "postId": {
-      "type": "integer"
+  "analysis": {
+    "tokenizer": {
+      "nori_mixed_true_tokenizer": {
+        "type": "nori_tokenizer",
+        "decompound_mode": "mixed",
+        "discard_punctuation": "true"
+      }
     },
-    "title": {
-      "type": "text",
-      "analyzer": "korean"
+    "filter": {
+      "nori_speech_filter": {
+        "type": "nori_part_of_speech",
+        "stoptags": [
+          "E", "IC", "J", "MAG", "MAJ", "MM",
+          "SP", "SSC", "SSO", "SC", "SE",
+          "XPN", "XSA", "XSN", "XSV", "UNA", "NA", "VSV"
+        ]
+      },
+      "nori_readingform_filter": {
+        "type": "nori_readingform"
+      }
     },
-    "content": {
-      "type": "text",
-      "analyzer": "korean"
-    },
-    "memberNickname": {
-      "type": "text",
-      "analyzer": "korean",
-      "fields": { "keyword": { "type":  "keyword"} }
-    },
-    "createdAt": {
-      "type": "date",
-      "format": "date_hour_minute_second_millis"
+    "analyzer": {
+      "korean": {
+        "type": "custom",
+        "tokenizer": "nori_mixed_true_tokenizer",
+        "filter": ["nori_speech_filter", "nori_readingform_filter", "lowercase"]
+      }
     }
   }
 }
