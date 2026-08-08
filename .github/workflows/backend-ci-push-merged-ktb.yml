@@ -30,7 +30,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: 테스트 DB 컨테이너 실행
-        run: docker compose -f github-actions-docker-db.yml up -d --wait --wait-timeout 60
+        run: docker compose -f github-actions-docker-db.yml up -d --wait --wait-timeout 120
 
       - name: 통합 테스트 실행
         run: ./gradlew integrationTest --no-daemon
