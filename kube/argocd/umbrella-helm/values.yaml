@@ -6,7 +6,7 @@ backend:
   image:
     pullPolicy: IfNotPresent
     repository: 925663248026.dkr.ecr.ap-northeast-2.amazonaws.com/stockpedia-backend
-    tag: a303f94c4eda2cca4ba9b1db275a1b66b776b1fc
+    tag: 005147315aea050779ba897ed57de1f3d4b6bfe4
 
   # --- Pod 리소스 ---
   resources:
