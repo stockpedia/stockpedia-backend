@@ -1,10 +1,8 @@
 package com.ktb.post.domain;
 
-import jakarta.persistence.Id;
 import lombok.*;
-import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.annotations.Mapping;
-import org.springframework.data.elasticsearch.annotations.Setting;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.*;
 
 
 import java.time.LocalDateTime;
@@ -28,5 +26,6 @@ public class PostDocument {
 
     private String memberNickname;
 
+    @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
     private LocalDateTime createdAt;
 }
